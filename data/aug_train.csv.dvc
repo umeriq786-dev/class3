@@ -1,0 +1,5 @@
+outs:
+- md5: 796d44c36a4959d3dc23310bb350979f
+  size: 1961145
+  hash: md5
+  path: aug_train.csv
