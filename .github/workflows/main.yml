@@ -1,0 +1,23 @@
+name: Deploy App to Production VM on Amazon Cloud
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Production VM
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.PRODUCTION_VM_IP }}
+          username: ${{ secrets.STAGING_VM_USER }}
+          key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
+          script: |
+            cd /var/www/class3
+            git pull 
+
+            echo "Deployment completed successfully"
