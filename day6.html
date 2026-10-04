@@ -1,0 +1,1417 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI + DevSecOps CI/CD Pipeline</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    >
+
+    <style>
+        :root {
+            --bg: #07101f;
+            --card: #0d1728;
+            --card2: #111d31;
+            --border: #1e2d43;
+            --text: #e5edf7;
+            --muted: #8190a5;
+            --blue: #60a5fa;
+            --green: #22c55e;
+            --yellow: #facc15;
+            --red: #f87171;
+            --purple: #a78bfa;
+            --cyan: #22d3ee;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background:
+                radial-gradient(circle at 20% 10%, rgba(37,99,235,.12), transparent 30%),
+                radial-gradient(circle at 80% 20%, rgba(124,58,237,.10), transparent 30%),
+                var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            font-family:
+                Inter,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        /* ---------------- HERO ---------------- */
+
+        .hero {
+            text-align: center;
+            padding: 65px 20px 35px;
+        }
+
+        .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            border-radius: 50px;
+            background: rgba(99,102,241,.13);
+            border: 1px solid rgba(129,140,248,.35);
+            color: #a5b4fc;
+            font-size: 14px;
+            margin-bottom: 22px;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            font-weight: 850;
+            margin-bottom: 15px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #60a5fa,
+                    #a78bfa,
+                    #22d3ee,
+                    #60a5fa
+                );
+
+            background-size: 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+
+            animation: gradientMove 5s linear infinite;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0%; }
+            100% { background-position: 300%; }
+        }
+
+        .hero p {
+            max-width: 800px;
+            margin: auto;
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
+
+        .live {
+            margin-top: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--green);
+            font-size: 13px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: blink 1.2s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: .2;
+            }
+        }
+
+        /* ---------------- PIPELINE ---------------- */
+
+        .pipeline-card {
+            background: rgba(13,23,40,.92);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 35px;
+            box-shadow: 0 30px 80px rgba(0,0,0,.35);
+        }
+
+        .pipeline-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .pipeline-header h3 {
+            font-weight: 750;
+        }
+
+        .pipeline-header p {
+            color: var(--muted);
+        }
+
+        .pipeline-wrapper {
+            position: relative;
+            overflow-x: auto;
+            padding: 20px 5px 30px;
+        }
+
+        .pipeline {
+            min-width: 1550px;
+            display: flex;
+            align-items: flex-start;
+            position: relative;
+            gap: 0;
+        }
+
+        /* horizontal connection line */
+
+        .pipeline-track {
+            position: absolute;
+            top: 48px;
+            left: 50px;
+            right: 50px;
+            height: 4px;
+            background: #1e293b;
+            border-radius: 20px;
+        }
+
+        .pipeline-track-progress {
+            position: absolute;
+            top: 48px;
+            left: 50px;
+            width: 0;
+            height: 4px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    var(--blue),
+                    var(--purple),
+                    var(--cyan),
+                    var(--green)
+                );
+
+            border-radius: 20px;
+
+            transition: width 1s ease;
+            box-shadow: 0 0 12px rgba(96,165,250,.5);
+        }
+
+        /* ---------------- STAGES ---------------- */
+
+        .stage {
+            width: 125px;
+            flex-shrink: 0;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            margin-right: 4px;
+        }
+
+        .stage-icon {
+            width: 76px;
+            height: 76px;
+            margin: auto;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: var(--card2);
+            border: 2px solid #26364d;
+
+            font-size: 29px;
+
+            transition:
+                transform .4s,
+                box-shadow .4s,
+                border-color .4s,
+                background .4s;
+        }
+
+        .stage-title {
+            margin-top: 13px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .stage-subtitle {
+            color: #64748b;
+            font-size: 11px;
+            margin-top: 4px;
+            min-height: 28px;
+        }
+
+        .stage-number {
+            position: absolute;
+            top: -8px;
+            right: 18px;
+
+            width: 22px;
+            height: 22px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: #172033;
+            border: 1px solid #334155;
+
+            font-size: 10px;
+            color: #64748b;
+        }
+
+        /* completed */
+
+        .stage.completed .stage-icon {
+            border-color: var(--green);
+            background: rgba(34,197,94,.09);
+            color: var(--green);
+        }
+
+        .stage.completed .stage-number {
+            background: var(--green);
+            color: #02130a;
+            border-color: var(--green);
+        }
+
+        /* current */
+
+        .stage.active .stage-icon {
+            border-color: var(--cyan);
+            color: var(--cyan);
+
+            transform: translateY(-7px) scale(1.08);
+
+            box-shadow:
+                0 0 0 5px rgba(34,211,238,.08),
+                0 0 35px rgba(34,211,238,.35);
+
+            animation: activePulse 1.5s infinite;
+        }
+
+        .stage.active .stage-number {
+            background: var(--cyan);
+            color: #00151b;
+            border-color: var(--cyan);
+        }
+
+        .stage.active .stage-title {
+            color: var(--cyan);
+        }
+
+        @keyframes activePulse {
+            0% {
+                box-shadow:
+                    0 0 0 0 rgba(34,211,238,.4),
+                    0 0 20px rgba(34,211,238,.2);
+            }
+
+            70% {
+                box-shadow:
+                    0 0 0 13px rgba(34,211,238,0),
+                    0 0 35px rgba(34,211,238,.4);
+            }
+
+            100% {
+                box-shadow:
+                    0 0 0 0 rgba(34,211,238,0),
+                    0 0 20px rgba(34,211,238,.2);
+            }
+        }
+
+        /* security stages */
+
+        .security .stage-icon {
+            color: var(--purple);
+        }
+
+        .security.active .stage-icon {
+            border-color: var(--purple);
+            color: var(--purple);
+            box-shadow: 0 0 30px rgba(167,139,250,.35);
+        }
+
+        .security.completed .stage-icon {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        /* approval */
+
+        .approval .stage-icon {
+            color: var(--yellow);
+        }
+
+        .approval.active .stage-icon {
+            border-color: var(--yellow);
+            color: var(--yellow);
+            box-shadow: 0 0 30px rgba(250,204,21,.3);
+        }
+
+        /* ---------------- TERMINAL ---------------- */
+
+        .terminal {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 15px;
+
+            margin-top: 25px;
+            padding: 22px;
+
+            font-family: "Courier New", monospace;
+
+            min-height: 250px;
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            color: #64748b;
+            margin-bottom: 15px;
+        }
+
+        .terminal-line {
+            margin-bottom: 7px;
+            font-size: 13px;
+        }
+
+        .prompt {
+            color: var(--green);
+        }
+
+        .success {
+            color: var(--green);
+        }
+
+        .info {
+            color: var(--blue);
+        }
+
+        .security-text {
+            color: var(--purple);
+        }
+
+        .warning {
+            color: var(--yellow);
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 7px;
+            height: 15px;
+            background: var(--green);
+            animation: cursorBlink .8s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes cursorBlink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* ---------------- ENVIRONMENT ---------------- */
+
+        .environment {
+            margin-top: 35px;
+        }
+
+        .env-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .env-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--blue);
+        }
+
+        .env-card.staging::before {
+            background: var(--yellow);
+        }
+
+        .env-card.production::before {
+            background: var(--green);
+        }
+
+        .env-title {
+            font-size: 13px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .env-value {
+            font-size: 23px;
+            font-weight: 800;
+            margin-top: 6px;
+        }
+
+        .env-status {
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            margin-right: 5px;
+        }
+
+        /* ---------------- FOOTER ---------------- */
+
+        footer {
+            padding: 45px 20px;
+            text-align: center;
+            color: #475569;
+        }
+
+        footer strong {
+            color: #94a3b8;
+        }
+
+        /* mobile */
+
+        @media (max-width: 768px) {
+
+            .hero {
+                padding-top: 40px;
+            }
+
+            .pipeline-card {
+                padding: 20px;
+            }
+
+            .pipeline-wrapper {
+                overflow-x: auto;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid px-lg-5">
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+        <div class="ai-badge">
+            <i class="bi bi-stars"></i>
+            Created with AI
+        </div>
+
+        <h1>
+            AI Generated. DevSecOps Deployed.
+        </h1>
+
+        <p>
+            This application was created with Artificial Intelligence and
+            automatically delivered through a secure GitHub Actions CI/CD pipeline.
+        </p>
+
+        <div class="live">
+            <span class="live-dot"></span>
+            CI/CD Pipeline Simulation Running
+        </div>
+
+    </section>
+
+
+    <!-- PIPELINE -->
+
+    <section class="pipeline-card">
+
+        <div class="pipeline-header">
+
+            <h3>
+                <i class="bi bi-diagram-3"></i>
+                End-to-End DevSecOps Pipeline
+            </h3>
+
+            <p>
+                Code → Quality → Security → Build → Registry → Staging → QA → DAST → Approval → Production
+            </p>
+
+        </div>
+
+
+        <div class="pipeline-wrapper">
+
+            <div class="pipeline">
+
+                <div class="pipeline-track"></div>
+
+                <div
+                    class="pipeline-track-progress"
+                    id="progress">
+                </div>
+
+
+                <!-- 01 COMMIT -->
+
+                <div class="stage active" data-index="0">
+
+                    <span class="stage-number">01</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-git"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        Commit
+                    </div>
+
+                    <div class="stage-subtitle">
+                        Developer commits code
+                    </div>
+
+                </div>
+
+
+                <!-- 02 PUSH -->
+
+                <div class="stage" data-index="1">
+
+                    <span class="stage-number">02</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        Push
+                    </div>
+
+                    <div class="stage-subtitle">
+                        Push to GitHub
+                    </div>
+
+                </div>
+
+
+                <!-- 03 PYTHON -->
+
+                <div class="stage" data-index="2">
+
+                    <span class="stage-number">03</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-filetype-py"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        Python
+                    </div>
+
+                    <div class="stage-subtitle">
+                        Syntax / compile checks
+                    </div>
+
+                </div>
+
+
+                <!-- 04 LINT -->
+
+                <div class="stage" data-index="3">
+
+                    <span class="stage-number">04</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-check2-square"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        Lint
+                    </div>
+
+                    <div class="stage-subtitle">
+                        Code quality
+                    </div>
+
+                </div>
+
+
+                <!-- 05 UNIT TEST -->
+
+                <div class="stage" data-index="4">
+
+                    <span class="stage-number">05</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-beaker"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        Unit Tests
+                    </div>
+
+                    <div class="stage-subtitle">
+                        Automated tests
+                    </div>
+
+                </div>
+
+
+                <!-- 06 SAST -->
+
+                <div class="stage security" data-index="5">
+
+                    <span class="stage-number">06</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        SAST
+                    </div>
+
+                    <div class="stage-subtitle">
+                        Static security scan
+                    </div>
+
+                </div>
+
+
+                <!-- 07 BUILD -->
+
+                <div class="stage" data-index="6">
+
+                    <span class="stage-number">07</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        Build
+                    </div>
+
+                    <div class="stage-subtitle">
+                        Application / image
+                    </div>
+
+                </div>
+
+
+                <!-- 08 REGISTRY -->
+
+                <div class="stage" data-index="7">
+
+                    <span class="stage-number">08</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-database-up"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        Registry
+                    </div>
+
+                    <div class="stage-subtitle">
+                        Push artifact / image
+                    </div>
+
+                </div>
+
+
+                <!-- 09 STAGING -->
+
+                <div class="stage" data-index="8">
+
+                    <span class="stage-number">09</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-server"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        Staging
+                    </div>
+
+                    <div class="stage-subtitle">
+                        Deploy application
+                    </div>
+
+                </div>
+
+
+                <!-- 10 QA -->
+
+                <div class="stage" data-index="9">
+
+                    <span class="stage-number">10</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-clipboard-check"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        QA Tests
+                    </div>
+
+                    <div class="stage-subtitle">
+                        Functional testing
+                    </div>
+
+                </div>
+
+
+                <!-- 11 DAST -->
+
+                <div class="stage security" data-index="10">
+
+                    <span class="stage-number">11</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        DAST
+                    </div>
+
+                    <div class="stage-subtitle">
+                        Dynamic security scan
+                    </div>
+
+                </div>
+
+
+                <!-- 12 DEMO -->
+
+                <div class="stage" data-index="11">
+
+                    <span class="stage-number">12</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-display"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        Demo
+                    </div>
+
+                    <div class="stage-subtitle">
+                        Business validation
+                    </div>
+
+                </div>
+
+
+                <!-- 13 APPROVAL -->
+
+                <div class="stage approval" data-index="12">
+
+                    <span class="stage-number">13</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-person-check"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        Approval
+                    </div>
+
+                    <div class="stage-subtitle">
+                        Release approval
+                    </div>
+
+                </div>
+
+
+                <!-- 14 PRODUCTION -->
+
+                <div class="stage" data-index="13">
+
+                    <span class="stage-number">14</span>
+
+                    <div class="stage-icon">
+                        <i class="bi bi-rocket-takeoff"></i>
+                    </div>
+
+                    <div class="stage-title">
+                        Production
+                    </div>
+
+                    <div class="stage-subtitle">
+                        🚀 Live deployment
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TERMINAL -->
+
+        <div class="terminal">
+
+            <div class="terminal-header">
+                <i class="bi bi-terminal"></i>
+                github-actions-runner / deployment.log
+            </div>
+
+            <div id="terminalOutput"></div>
+
+            <span class="cursor"></span>
+
+        </div>
+
+    </section>
+
+
+    <!-- ENVIRONMENTS -->
+
+    <section class="environment">
+
+        <div class="row g-3">
+
+            <div class="col-md-4">
+
+                <div class="env-card">
+
+                    <div class="env-title">
+                        Source
+                    </div>
+
+                    <div class="env-value">
+                        <i class="bi bi-github"></i>
+                        GitHub
+                    </div>
+
+                    <div class="env-status">
+                        <span class="status-dot"></span>
+                        Repository connected
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <div class="env-card staging">
+
+                    <div class="env-title">
+                        Environment
+                    </div>
+
+                    <div class="env-value">
+                        <i class="bi bi-server"></i>
+                        Staging
+                    </div>
+
+                    <div class="env-status">
+                        <span class="status-dot"></span>
+                        QA + DAST validation
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+                <div class="env-card production">
+
+                    <div class="env-title">
+                        Environment
+                    </div>
+
+                    <div class="env-value">
+                        <i class="bi bi-rocket"></i>
+                        Production
+                    </div>
+
+                    <div class="env-status">
+                        <span class="status-dot"></span>
+                        Protected deployment
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <footer>
+
+        <div>
+            Built with
+            <strong>AI</strong>
+            +
+            <strong>Bootstrap</strong>
+            +
+            <strong>GitHub Actions</strong>
+            +
+            <strong>DevSecOps</strong>
+        </div>
+
+        <div class="mt-2">
+            Commit → Test → Secure → Build → Registry → Stage →
+            QA → DAST → Demo → Approve → 🚀 Production
+        </div>
+
+    </footer>
+
+</div>
+
+
+<script>
+
+    /*
+     * ==========================================================
+     * DEVSECOPS PIPELINE ANIMATION
+     * ==========================================================
+     *
+     * This is a visual simulation.
+     *
+     * In a real implementation these stages would correspond
+     * to GitHub Actions jobs.
+     *
+     * Pipeline:
+     *
+     * 01 Commit
+     * 02 Push
+     * 03 Python
+     * 04 Lint
+     * 05 Unit Tests
+     * 06 SAST
+     * 07 Build
+     * 08 Registry
+     * 09 Staging
+     * 10 QA
+     * 11 DAST
+     * 12 Demo
+     * 13 Approval
+     * 14 Production
+     *
+     * ==========================================================
+     */
+
+    const stages = document.querySelectorAll(".stage");
+    const progress = document.getElementById("progress");
+    const terminal = document.getElementById("terminalOutput");
+
+    let currentStage = 0;
+
+    const messages = [
+
+        {
+            type: "info",
+            text: "$ git commit -m \"Deploy AI generated application\""
+        },
+
+        {
+            type: "success",
+            text: "✓ Commit created successfully"
+        },
+
+        {
+            type: "info",
+            text: "$ git push origin main"
+        },
+
+        {
+            type: "success",
+            text: "✓ Code pushed to GitHub"
+        },
+
+        {
+            type: "info",
+            text: "→ GitHub Actions workflow triggered"
+        },
+
+        {
+            type: "info",
+            text: "⚙ Runner started: ubuntu-latest"
+        },
+
+        {
+            type: "info",
+            text: "→ Running Python syntax / compile checks..."
+        },
+
+        {
+            type: "success",
+            text: "✓ Python checks passed"
+        },
+
+        {
+            type: "info",
+            text: "→ Running lint / code quality checks..."
+        },
+
+        {
+            type: "success",
+            text: "✓ Lint checks passed"
+        },
+
+        {
+            type: "info",
+            text: "→ Running unit tests..."
+        },
+
+        {
+            type: "success",
+            text: "✓ Unit tests passed"
+        },
+
+        {
+            type: "security-text",
+            text: "🛡 Running SAST security analysis..."
+        },
+
+        {
+            type: "success",
+            text: "✓ SAST completed — no blocking findings"
+        },
+
+        {
+            type: "info",
+            text: "→ Building application / container image..."
+        },
+
+        {
+            type: "success",
+            text: "✓ Build completed successfully"
+        },
+
+        {
+            type: "info",
+            text: "→ Pushing artifact / container image to registry..."
+        },
+
+        {
+            type: "success",
+            text: "✓ Artifact pushed: registry/app:build-142"
+        },
+
+        {
+            type: "info",
+            text: "→ Deploying artifact to STAGING..."
+        },
+
+        {
+            type: "success",
+            text: "✓ Staging deployment completed"
+        },
+
+        {
+            type: "warning",
+            text: "→ QA executing functional / integration tests..."
+        },
+
+        {
+            type: "success",
+            text: "✓ QA tests passed"
+        },
+
+        {
+            type: "security-text",
+            text: "🛡 Running DAST against staging..."
+        },
+
+        {
+            type: "success",
+            text: "✓ DAST completed — no blocking findings"
+        },
+
+        {
+            type: "warning",
+            text: "→ Application demo / business validation..."
+        },
+
+        {
+            type: "success",
+            text: "✓ Demo approved"
+        },
+
+        {
+            type: "warning",
+            text: "⏳ Waiting for production approval..."
+        },
+
+        {
+            type: "success",
+            text: "✓ Production deployment approved"
+        },
+
+        {
+            type: "info",
+            text: "→ Deploying approved artifact to PRODUCTION..."
+        },
+
+        {
+            type: "success",
+            text: "🚀 Production deployment completed successfully"
+        }
+
+    ];
+
+
+    /*
+     * Add terminal line
+     */
+
+    function addTerminalLine(message) {
+
+        const line = document.createElement("div");
+
+        line.className =
+            "terminal-line " + message.type;
+
+        line.textContent = message.text;
+
+        terminal.appendChild(line);
+
+        /*
+         * Keep latest output visible
+         */
+
+        terminal.parentElement.scrollTop =
+            terminal.parentElement.scrollHeight;
+    }
+
+
+    /*
+     * Clear terminal for new pipeline cycle
+     */
+
+    function clearTerminal() {
+
+        terminal.innerHTML = "";
+
+    }
+
+
+    /*
+     * Update pipeline stage
+     */
+
+    function updateStages(index) {
+
+        stages.forEach((stage, i) => {
+
+            stage.classList.remove("active");
+
+            if (i < index) {
+                stage.classList.add("completed");
+            } else {
+                stage.classList.remove("completed");
+            }
+
+        });
+
+
+        if (index < stages.length) {
+
+            stages[index].classList.add("active");
+
+        }
+
+
+        /*
+         * Update progress line
+         */
+
+        const percentage =
+            (index / (stages.length - 1)) * 100;
+
+        progress.style.width =
+            `calc(${percentage}% - 50px)`;
+
+    }
+
+
+    /*
+     * Run pipeline
+     */
+
+    function runPipeline() {
+
+        currentStage = 0;
+
+        clearTerminal();
+
+        stages.forEach(stage => {
+            stage.classList.remove("active");
+            stage.classList.remove("completed");
+        });
+
+        progress.style.width = "0";
+
+
+        /*
+         * Run one stage approximately every 2 seconds.
+         */
+
+        const stageTimer = setInterval(() => {
+
+            updateStages(currentStage);
+
+            /*
+             * Add multiple relevant terminal messages
+             * as pipeline moves.
+             */
+
+            if (currentStage === 0) {
+                addTerminalLine(messages[0]);
+                addTerminalLine(messages[1]);
+            }
+
+            if (currentStage === 1) {
+                addTerminalLine(messages[2]);
+                addTerminalLine(messages[3]);
+                addTerminalLine(messages[4]);
+                addTerminalLine(messages[5]);
+            }
+
+            if (currentStage === 2) {
+                addTerminalLine(messages[6]);
+                addTerminalLine(messages[7]);
+            }
+
+            if (currentStage === 3) {
+                addTerminalLine(messages[8]);
+                addTerminalLine(messages[9]);
+            }
+
+            if (currentStage === 4) {
+                addTerminalLine(messages[10]);
+                addTerminalLine(messages[11]);
+            }
+
+            if (currentStage === 5) {
+                addTerminalLine(messages[12]);
+                addTerminalLine(messages[13]);
+            }
+
+            if (currentStage === 6) {
+                addTerminalLine(messages[14]);
+                addTerminalLine(messages[15]);
+            }
+
+            if (currentStage === 7) {
+                addTerminalLine(messages[16]);
+                addTerminalLine(messages[17]);
+            }
+
+            if (currentStage === 8) {
+                addTerminalLine(messages[18]);
+                addTerminalLine(messages[19]);
+            }
+
+            if (currentStage === 9) {
+                addTerminalLine(messages[20]);
+                addTerminalLine(messages[21]);
+            }
+
+            if (currentStage === 10) {
+                addTerminalLine(messages[22]);
+                addTerminalLine(messages[23]);
+            }
+
+            if (currentStage === 11) {
+                addTerminalLine(messages[24]);
+                addTerminalLine(messages[25]);
+            }
+
+            if (currentStage === 12) {
+                addTerminalLine(messages[26]);
+                addTerminalLine(messages[27]);
+            }
+
+            if (currentStage === 13) {
+                addTerminalLine(messages[28]);
+                addTerminalLine(messages[29]);
+            }
+
+
+            currentStage++;
+
+
+            /*
+             * Pipeline finished.
+             */
+
+            if (currentStage >= stages.length) {
+
+                clearInterval(stageTimer);
+
+                /*
+                 * Mark everything completed.
+                 */
+
+                stages.forEach(stage => {
+
+                    stage.classList.remove("active");
+                    stage.classList.add("completed");
+
+                });
+
+                progress.style.width =
+                    "calc(100% - 50px)";
+
+
+                /*
+                 * Start another cycle after a delay.
+                 */
+
+                setTimeout(() => {
+
+                    runPipeline();
+
+                }, 5000);
+
+            }
+
+        }, 1800);
+
+    }
+
+
+    /*
+     * Start animation
+     */
+
+    runPipeline();
+
+</script>
+
+</body>
+</html>
+```
